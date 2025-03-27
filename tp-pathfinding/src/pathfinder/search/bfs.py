@@ -23,5 +23,30 @@ class BreadthFirstSearch:
         
         # Add the node to the explored dictionary
         explored[node.state] = True
+
+                # Return if the node contains a goal state
+        if node.state == grid.end:
+            return Solution(node, explored)
         
-        return NoSolution(explored)
+        frontera = QueueFrontier()
+        frontera.add(node)
+        alcanzados = {}
+        alcanzados[node.state] = True
+        
+        while True:
+            if frontera.is_empty():
+                return NoSolution(alcanzados)
+            n = frontera.remove()
+            successors = grid.get_neighbours(n.state)
+            for accion, estado in successors.items():
+                if estado not in alcanzados:
+                    nuevo = Node('',estado, n.cost + grid.get_cost(estado) , n, accion)
+                    if estado == grid.end:
+                        return Solution(nuevo, alcanzados)
+                    alcanzados[estado] = True
+                    frontera.add(nuevo)
+                    
+
+
+
+   
