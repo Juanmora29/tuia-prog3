@@ -1,5 +1,5 @@
 from ..models.grid import Grid
-from ..models.frontier import StackFrontier
+from ..models.frontier import StackFrontier, PriorityQueueFrontier
 from ..models.solution import NoSolution, Solution
 from ..models.node import Node
 
@@ -24,4 +24,21 @@ class UniformCostSearch:
         # Add the node to the explored dictionary
         explored[node.state] = True
         
-        return NoSolution(explored)
+        frontera = PriorityQueueFrontier()
+        frontera.add(node, node.cost)
+        alcanzados = {}
+        alcanzados[node.state] = node.cost
+
+        while True:
+            if frontera.is_empty():
+                return NoSolution(alcanzados)
+            n = frontera.pop()
+            if grid.end == n.state:
+                return Solution(n, alcanzados)
+            succesors = grid.get_neighbours(n.state)
+            for accion, estado in succesors.items():
+                costo_sucesor = n.cost + grid.get_cost(estado)
+                if estado not in alcanzados or costo_sucesor < alcanzados[estado]:
+                    nuevo = Node('', estado, costo_sucesor, n, accion)
+                    alcanzados[estado] = costo_sucesor
+                    frontera.add(nuevo, costo_sucesor)
