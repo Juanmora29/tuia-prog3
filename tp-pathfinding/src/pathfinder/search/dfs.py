@@ -24,4 +24,25 @@ class DepthFirstSearch:
         # Add the node to the explored dictionary
         explored[node.state] = True
         
-        return NoSolution(explored)
+        # Return if the node contains a goal state
+        if node.state == grid.end:
+            return Solution(node, explored)
+        
+        frontera = StackFrontier()
+        frontera.add(node)
+        expandidos = {}
+        
+        while True:
+            if frontera.is_empty():
+                return NoSolution(expandidos)
+            n = frontera.remove()
+            if n.state in expandidos:
+                continue
+            expandidos[n.state] = True
+            successors = grid.get_neighbours(n.state)
+            for accion, estado in successors.items():
+                if estado not in expandidos:
+                    nuevo = Node('',estado, n.cost + grid.get_cost(estado) , n, accion)
+                    if estado == grid.end:
+                        return Solution(nuevo, expandidos)
+                    frontera.add(nuevo)
