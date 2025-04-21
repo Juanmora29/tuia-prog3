@@ -2,26 +2,42 @@ from ..models.grid import Grid
 from ..models.frontier import PriorityQueueFrontier
 from ..models.solution import NoSolution, Solution
 from ..models.node import Node
+from typing import Tuple
 
 
 class AStarSearch:
     @staticmethod
-    def search(grid: Grid) -> Solution:
-        """Find path between two points in a grid using A* Search
+    def search(
+        grid: Grid,
+        h = None
+    ) -> Solution:
+        # heurística Manhattan por defecto
+        if h is None:
+            def default_h(coord: Tuple[int, int]) -> float:
+                x, y = coord
+                gx, gy = grid.end
+                return abs(x - gx) + abs(y - gy)
+            h = default_h
 
-        Args:
-            grid (Grid): Grid of points
+        start = grid.start
+        node = Node("", start, 0)
+        alcanzados = {start: 0}
+        frontera = PriorityQueueFrontier()
 
-        Returns:
-            Solution: Solution found
-        """
-        # Initialize a node with the initial position
-        node = Node("", grid.start, 0)
+        # PRIORIDAD = heurística de la posición de inicio
+        frontera.add(node, h(start))
 
-        # Initialize the explored dictionary to be empty
-        explored = {} 
-        
-        # Add the node to the explored dictionary
-        explored[node.state] = True
-        
-        return NoSolution(explored)
+        while not frontera.is_empty():
+            n = frontera.pop()
+            if n.state == grid.end:
+                return Solution(n, alcanzados)
+
+            for accion, estado in grid.get_neighbours(n.state).items():
+                if estado not in alcanzados:
+                    costo_sucesor = n.cost + grid.get_cost(estado)
+                    alcanzados[estado] = costo_sucesor
+                    nuevo = Node("", estado, costo_sucesor, n, accion)
+                    # 3) PRIORIDAD = heurística de la posición del sucesor
+                    frontera.add(nuevo, n.cost + h(estado))
+
+        return NoSolution(alcanzados)
