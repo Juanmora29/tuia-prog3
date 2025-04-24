@@ -6,25 +6,20 @@ from ..models.node import Node
 
 class GreedyBestFirstSearch:
     @staticmethod
-    def search(
-        grid: Grid,
-        h = None
-    ) -> Solution:
-        # heurística Manhattan por defecto
-        if h is None:
-            def default_h(coord: Tuple[int, int]) -> float:
+    def heuristica_manhattan(coord: Tuple[int, int], grid) -> float:
                 x, y = coord
                 gx, gy = grid.end
                 return abs(x - gx) + abs(y - gy)
-            h = default_h
-
+    
+    def search(
+        grid: Grid
+    ) -> Solution:
+      
         start = grid.start
         node = Node("", start, 0)
         alcanzados = {start: 0}
         frontera = PriorityQueueFrontier()
-
-        # PRIORIDAD = heurística de la posición de inicio
-        frontera.add(node, h(start))
+        frontera.add(node, GreedyBestFirstSearch.heuristica_manhattan(start, grid))
 
         while not frontera.is_empty():
             n = frontera.pop()
@@ -36,7 +31,11 @@ class GreedyBestFirstSearch:
                     costo_sucesor = n.cost + grid.get_cost(estado)
                     alcanzados[estado] = costo_sucesor
                     nuevo = Node("", estado, costo_sucesor, n, accion)
-                    # 3) PRIORIDAD = heurística de la posición del sucesor
-                    frontera.add(nuevo, h(estado))
+                    frontera.add(nuevo, GreedyBestFirstSearch.heuristica_manhattan(estado, grid))
 
         return NoSolution(alcanzados)
+    
+    
+            
+    
+    
