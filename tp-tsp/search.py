@@ -18,6 +18,7 @@ No viene implementado, se debe completar.
 from __future__ import annotations
 from time import time
 from problem import OptProblem
+from collections import deque 
 
 
 class LocalSearch:
@@ -82,10 +83,97 @@ class HillClimbing(LocalSearch):
 class HillClimbingReset(LocalSearch):
     """Algoritmo de ascension de colinas con reinicio aleatorio."""
 
-    # COMPLETAR
+    def __init__(self,max_iters=1000):
+        super().__init__()
+        self.max_iters = max_iters  # nuevo parámetro
+
+    def solve(self, problem: OptProblem):
+        #incio de contador
+        start = time()
+
+        #establecemos el nodo inicial y su valor objetivo
+        actual = problem.init
+        value = problem.obj_val(actual)
+
+        #establecemos una variable que va a guardar el estado con mejor valor objt 
+        best = actual
+        best_val = value
+
+        #iteramos en base la max iters que seteamos
+        while self.niters < self.max_iters:
+
+            #obtenemos la accion y el valor objetivo del sucesor
+            act, succ_val = problem.max_action(actual)
+
+            #si el valor obj del sucesor es mejor o igual que el valor del estado actual
+            if succ_val <= value:
+                # Reinicio aleatorio
+                actual = problem.random_reset()
+                value = problem.obj_val(actual)
+            else:
+                #si no, actualizamos el valor del estado actual 
+                actual = problem.result(actual, act)
+                value = succ_val
+
+                #si el valor obj es mejor que el que estado que tenemos guardado
+                #como mejor, lo remplazamos
+                if value > best_val:
+                    best = actual
+                    best_val = value
+
+            self.niters += 1
+
+        self.tour = best
+        self.value = best_val
+        self.time = time() - start
 
 
 class Tabu(LocalSearch):
-    """Algoritmo de busqueda tabu."""
+    """Algoritmo de búsqueda tabú."""
 
-    # COMPLETAR
+    def __init__(self, tabu_longitud=15):
+        super().__init__()
+        self.tabu_longitud = tabu_longitud
+
+    def solve(self, problem: OptProblem):
+        #incio de contador
+        start = time()
+
+        #establecemos el nodo inicial y su valor objetivo
+        actual = problem.init
+        value = problem.obj_val(actual)
+
+        #establecemos una variable que va a guardar el estado con mejor valor objt 
+        best = actual
+        best_val = value
+
+        #nuestra lista tabu es una cola de doble extremo
+        #permite agregar o quitar elementos tanto de un extremo como del otro
+        tabu_list = deque(maxlen=self.tabu_longitud)
+        umbral = 500
+        sin_mejora = 0
+
+        while True:
+            #Modificamos max action en problem.py para que pueda recivir nuestra lista tabu
+            act, succ_val = problem.max_action(actual, tabu_list)
+            sucesor = problem.result(actual, act)
+
+            if succ_val > best_val:
+                sin_mejora = 0
+                best = sucesor
+                best_val = succ_val
+            else:
+                 sin_mejora += 1
+                 if sin_mejora >= umbral:
+                    break
+            
+            
+            tabu_list.append(act)
+            actual = sucesor
+            self.niters += 1
+
+        self.tour = best
+        self.value = best_val
+        self.time = time() - start
+
+
