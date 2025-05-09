@@ -122,18 +122,18 @@ class HillClimbingReset(LocalSearch):
                     best_val = value
 
             self.niters += 1
-
-        self.tour = best
-        self.value = best_val
-        self.time = time() - start
+            self.tour = best
+            self.value = best_val
+            self.time = time() - start
 
 
 class Tabu(LocalSearch):
     """Algoritmo de búsqueda tabú."""
 
-    def __init__(self, tabu_longitud=15):
+    def __init__(self, tabu_longitud=50, max_iter_sin_mejora=5000):
         super().__init__()
         self.tabu_longitud = tabu_longitud
+        self.max_iter_sin_mejora = max_iter_sin_mejora #si en x iteraciones no mejora el programa corta
 
     def solve(self, problem: OptProblem):
         #incio de contador
@@ -150,8 +150,8 @@ class Tabu(LocalSearch):
         #nuestra lista tabu es una cola de doble extremo
         #permite agregar o quitar elementos tanto de un extremo como del otro
         tabu_list = deque(maxlen=self.tabu_longitud)
-        umbral = 500
-        sin_mejora = 0
+
+        sin_mejora = 0 #una variable que nos sirve para contar la cantidad de veces que el programa no mejoro
 
         while True:
             #Modificamos max action en problem.py para que pueda recivir nuestra lista tabu
@@ -159,21 +159,21 @@ class Tabu(LocalSearch):
             sucesor = problem.result(actual, act)
 
             if succ_val > best_val:
-                sin_mejora = 0
+                sin_mejora = 0 # reiniciamos el contador por que mejoramos el best value
                 best = sucesor
                 best_val = succ_val
             else:
-                 sin_mejora += 1
-                 if sin_mejora >= umbral:
+                 sin_mejora += 1 #si el valor obj no es mejor que el best value que tenemos, sumamos 1 a la variable sin mejora
+                 if sin_mejora == self.max_iter_sin_mejora: #y si llegamos al umbral, cortamos
                     break
             
             
             tabu_list.append(act)
             actual = sucesor
-            self.niters += 1
 
-        self.tour = best
-        self.value = best_val
-        self.time = time() - start
+            self.niters += 1
+            self.tour = best
+            self.value = best_val
+            self.time = time() - start
 
 
