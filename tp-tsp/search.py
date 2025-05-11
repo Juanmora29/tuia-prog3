@@ -130,9 +130,10 @@ class HillClimbingReset(LocalSearch):
 class Tabu(LocalSearch):
     """Algoritmo de búsqueda tabú."""
 
-    def __init__(self, tabu_longitud=15):
+    def __init__(self, umbral=500):
         super().__init__()
-        self.tabu_longitud = tabu_longitud
+        self.umbral = umbral
+        
 
     def solve(self, problem: OptProblem):
         #incio de contador
@@ -146,14 +147,12 @@ class Tabu(LocalSearch):
         best = actual
         best_val = value
 
-        tabu_len = int(0.75*problem.G.number_of_nodes()) #agrego tabu_len dentro de la funcion solve para que pueda traer optproblem,
-                                                         # problem.G.number_of_nodes()) me trae la cantidad de nodos con la cual inicia el problema.
+        tabu_len = int(0.75*problem.G.number_of_nodes())  # problem.G.number_of_nodes()) me trae la cantidad de nodos con la cual inicia el problema.
                                                          # se puede cambiar el 0.75 para obtener mejores resultados
 
         #nuestra lista tabu es una cola de doble extremo
         #permite agregar o quitar elementos tanto de un extremo como del otro
-        tabu_list = deque(maxlen=self.tabu_longitud)
-        umbral = 500
+        tabu_list = deque(maxlen=tabu_len)
         sin_mejora = 0
 
         while True:
@@ -167,7 +166,7 @@ class Tabu(LocalSearch):
                 best_val = succ_val
             else:
                  sin_mejora += 1 #si el valor obj no es mejor que el best value que tenemos, sumamos 1 a la variable sin mejora
-                 if sin_mejora == self.max_iter_sin_mejora: #y si llegamos al umbral, cortamos
+                 if sin_mejora == self.umbral: #y si llegamos al umbral, cortamos
                     break
             
             
